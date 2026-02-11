@@ -1,0 +1,36 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ja-JP\n"
+
+msgid "Gesture"
+msgstr "ジェスチャー"
+
+msgid "Hand"
+msgstr "手"
+
+msgid "Disable Blink"
+msgstr "まばたき無効"
+
+msgid "Disable LipSync"
+msgstr "リップシンク無効"
+
+msgid "Disable Eye Tracking"
+msgstr "アイトラッキング無効"
+
+msgid "Custom Conditions"
+msgstr "カスタム条件"
+
+msgid "Animation Clip"
+msgstr "Animation Clip"
+
+msgid "Transforms"
+msgstr "トランスフォーム"
+
+msgid "Renderer"
+msgstr "レンダラー"
+
+msgid "There are overlapping gesture settings."
+msgstr "ジェスチャー設定の重複があります。"

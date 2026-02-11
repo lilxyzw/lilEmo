@@ -1,0 +1,21 @@
+{
+    "name": "jp.lilxyzw.lilemo",
+    "rootNamespace": "jp.lilxyzw.lilemo",
+    "references": [
+        "jp.lilxyzw.lilemo.runtime",
+        "nadena.dev.ndmf",
+        "nadena.dev.ndmf.vrchat",
+        "nadena.dev.modular-avatar.core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
