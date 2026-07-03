@@ -50,7 +50,7 @@ namespace jp.lilxyzw.lilemo
 
         private static void GetDefaults(GameObject avatarRoot, Emo emo, Dictionary<(string path, string propertyName, Type type), (EditorCurveBinding binding, float value)> defaultValues)
         {
-            if (emo.GetComponent<EmoTransform>() is not EmoTransform emoTransform) return;
+            if (!emo.GetComponent<EmoTransform>().Is(out EmoTransform emoTransform)) return;
 
             foreach (var t in emoTransform.transforms)
             {
@@ -81,7 +81,7 @@ namespace jp.lilxyzw.lilemo
 
         private static void SetCurves(GameObject avatarRoot, Emo emo, KeyValuePair<(string path, string propertyName, Type type), (EditorCurveBinding binding, float value)> kv, List<AnimationCurve> curves, ref bool isAdded)
         {
-            if (!isAdded && kv.Key.type == typeof(Transform) && emo.GetComponent<EmoTransform>() is EmoTransform emoTransform && emoTransform.transforms.FirstOrDefault(t => t.transform.GetPathInAvatarFast() == kv.Key.path) is EmoTransformSetting t)
+            if (!isAdded && kv.Key.type == typeof(Transform) && emo.GetComponent<EmoTransform>().Is(out EmoTransform emoTransform) && emoTransform.transforms.FirstOrDefault(t => t.transform.GetPathInAvatarFast() == kv.Key.path) is EmoTransformSetting t)
             {
                 if (kv.Key.propertyName == "m_LocalPosition.x") curves.Add(AnimationExtension.MakeZeroFrameCurve(t.position.x));
                 if (kv.Key.propertyName == "m_LocalPosition.y") curves.Add(AnimationExtension.MakeZeroFrameCurve(t.position.y));
@@ -98,7 +98,7 @@ namespace jp.lilxyzw.lilemo
 
         private static void OnPreview(GameObject gameObject, GameObject avatarRoot)
         {
-            if (gameObject.GetComponent<EmoTransform>() is not EmoTransform emoTransform) return;
+            if (!gameObject.GetComponent<EmoTransform>().Is(out EmoTransform emoTransform)) return;
             foreach (var t in emoTransform.transforms)
             {
                 if (t.transform)
@@ -148,7 +148,7 @@ namespace jp.lilxyzw.lilemo
                     isInit = false;
                     return;
                 }
-                if (e.changedProperty.objectReferenceValue is not Transform t) return;
+                if (!e.changedProperty.objectReferenceValue.Is(out Transform t)) return;
                 using var position = property.FindPropertyRelative("position");
                 position.vector3Value = t.localPosition;
                 using var euler = property.FindPropertyRelative("rotation");

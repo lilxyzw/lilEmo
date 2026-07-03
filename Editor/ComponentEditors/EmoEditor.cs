@@ -145,7 +145,7 @@ namespace jp.lilxyzw.lilemo
             shapes.Clear();
             // メッシュのBlendShapeを取得
             using var r = property.FindPropertyRelative("renderer");
-            if (r.objectReferenceValue is SkinnedMeshRenderer renderer && renderer.sharedMesh is Mesh mesh)
+            if (r.objectReferenceValue.Is(out SkinnedMeshRenderer renderer) && renderer.sharedMesh.Is(out Mesh mesh))
             {
                 int shapeCount = mesh.blendShapeCount;
                 for (int i = 0; i < shapeCount; i++)

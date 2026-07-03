@@ -38,7 +38,7 @@ namespace jp.lilxyzw.lilemo
                 (AnimatorControllerParameterType.Bool, parameterNameDisableBlink)
             };
             parameters.UnionWith(emos.SelectMany(e => e.customConditions).Select(c => (c.type, c.parameter)));
-            addParameter.Invoke(avatarRoot, emos, parameters);
+            addParameter?.Invoke(avatarRoot, emos, parameters);
             foreach (var parameter in parameters.Distinct(p => p.parameter))
                 controller.AddParameter(parameter.parameter, parameter.type);
 
@@ -105,8 +105,8 @@ namespace jp.lilxyzw.lilemo
                 // カスタムパラメーターによる遷移
                 var clip = clips[emo];
                 AddCustomConditionState(emo, clip, emo.customConditions, info);
-                addCustomStates(avatarRoot, emo, clip, info);
-                foreach (var conditions in getCustomStateConditions(avatarRoot, emo))
+                addCustomStates?.Invoke(avatarRoot, emo, clip, info);
+                foreach (var conditions in getCustomStateConditions?.Invoke(avatarRoot, emo))
                     AddCustomConditionState(emo, clip, conditions, info);
             }
 
@@ -142,7 +142,7 @@ namespace jp.lilxyzw.lilemo
             // まばたきレイヤー
             AnimationClip enableBlinkClip = null;
             AnimationClip disableBlinkClip = null;
-            if (blinkBinding is EditorCurveBinding blinkBinding2 && AnimationUtility.GetAnimatedObject(avatarRoot, blinkBinding2) is SkinnedMeshRenderer face && face.sharedMesh is Mesh faceMesh)
+            if (blinkBinding is EditorCurveBinding blinkBinding2 && AnimationUtility.GetAnimatedObject(avatarRoot, blinkBinding2).Is(out SkinnedMeshRenderer face) && face.sharedMesh.Is(out Mesh faceMesh))
             {
                 var index = faceMesh.GetBlendShapeIndex(blinkBinding2.propertyName["blendShape.".Length..]);
                 var weight = faceMesh.GetBlendShapeFrameWeight(index, faceMesh.GetBlendShapeFrameCount(index) - 1);
@@ -197,7 +197,7 @@ namespace jp.lilxyzw.lilemo
             foreach (var emo in emos)
             {
                 GetDefaults(avatarRoot, emo, defaultValues, clipBindings);
-                getDefaults.Invoke(avatarRoot, emo, defaultValues);
+                getDefaults?.Invoke(avatarRoot, emo, defaultValues);
             }
 
             // デフォルト表情
@@ -229,7 +229,7 @@ namespace jp.lilxyzw.lilemo
                     else
                     {
                         bool isAdded = false;
-                        setCurves.Invoke(avatarRoot, emo, kv, curves, ref isAdded);
+                        setCurves?.Invoke(avatarRoot, emo, kv, curves, ref isAdded);
                         if (!isAdded) curves.Add(MakeZeroFrameCurve(kv.Value.value));
                     }
                 }

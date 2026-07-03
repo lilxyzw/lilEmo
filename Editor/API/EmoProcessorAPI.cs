@@ -95,7 +95,7 @@ namespace jp.lilxyzw.lilemo
         {
             var pair = (binding.path, binding.propertyName, binding.type);
             if (defaultValues.ContainsKey(pair) || !obj && !(obj = AnimationUtility.GetAnimatedObject(avatarRoot, binding))) return;
-            if (binding.type == typeof(Transform) && obj is Transform transform && binding.propertyName.StartsWith("localEulerAnglesRaw."))
+            if (binding.type == typeof(Transform) && obj.Is(out Transform transform) && binding.propertyName.StartsWith("localEulerAnglesRaw."))
             {
                 if (binding.propertyName == "localEulerAnglesRaw.x") defaultValues[pair] = (binding, transform.localEulerAngles.x);
                 if (binding.propertyName == "localEulerAnglesRaw.y") defaultValues[pair] = (binding, transform.localEulerAngles.y);

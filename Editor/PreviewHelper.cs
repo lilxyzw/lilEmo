@@ -14,7 +14,7 @@ namespace jp.lilxyzw.lilemo
         private static void StartPreview(GameObject gameObject)
         {
             AnimationMode.StopAnimationMode(Driver);
-            if (!gameObject || gameObject.GetAvatarRoot() is not Transform rootTransform || rootTransform.gameObject is not GameObject root) return;
+            if (!gameObject || !gameObject.GetAvatarRoot().Is(out Transform rootTransform) || !rootTransform.gameObject.Is(out GameObject root)) return;
             AnimationMode.StartAnimationMode(Driver);
             onAnimationModePreview?.Invoke(gameObject, root);
         }

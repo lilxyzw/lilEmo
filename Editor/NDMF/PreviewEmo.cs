@@ -23,7 +23,7 @@ namespace jp.lilxyzw.lilemo
             {
                 context.Observe(e);
                 if (e.clip) context.Observe(e.clip);
-                if (e.GetComponent<EmoTransform>() is EmoTransform t) context.Observe(t);
+                if (e.GetComponent<EmoTransform>().Is(out EmoTransform t)) context.Observe(t);
             }
             context.Observe(proxyPairs.First().Item2);
 
@@ -38,7 +38,7 @@ namespace jp.lilxyzw.lilemo
 
             public void OnFrame(Renderer original, Renderer proxy)
             {
-                if (!lastEmo || original is not SkinnedMeshRenderer origRenderer || !ObjHelper.TryGetRendererAndMeshWithBlendshape(proxy, out var renderer, out var mesh) || lastEmo.gameObject.GetAvatarRoot() != original.gameObject.GetAvatarRoot()) return;
+                if (!lastEmo || !original.Is(out SkinnedMeshRenderer origRenderer) || !ObjHelper.TryGetRendererAndMeshWithBlendshape(proxy, out var renderer, out var mesh) || lastEmo.gameObject.GetAvatarRoot() != original.gameObject.GetAvatarRoot()) return;
                 PreviewHelper.PreviewEmo(lastEmo, origRenderer, renderer, mesh);
             }
 

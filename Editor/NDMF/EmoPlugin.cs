@@ -39,7 +39,7 @@ namespace jp.lilxyzw.lilemo
                 tempObject.transform.parent = ctx.AvatarRootTransform;
 
                 ModularAvatarMergeAnimator maAnimator;
-                if (settings && settings.gameObject.GetComponent<ModularAvatarMergeAnimator>() is ModularAvatarMergeAnimator mergeAnimator)
+                if (settings && settings.gameObject.GetComponent<ModularAvatarMergeAnimator>().Is(out ModularAvatarMergeAnimator mergeAnimator))
                 {
                     maAnimator = mergeAnimator;
                 }
@@ -67,7 +67,7 @@ namespace jp.lilxyzw.lilemo
                 {
                     GameObject gameObject = null;
                     if (emo) gameObject = emo.gameObject;
-                    else if (ctx.AvatarRootObject.GetComponentInChildren<EmoIdlePlaceholder>() is EmoIdlePlaceholder placeholder) gameObject = placeholder.gameObject;
+                    else if (ctx.AvatarRootObject.GetComponentInChildren<EmoIdlePlaceholder>().Is(out EmoIdlePlaceholder placeholder)) gameObject = placeholder.gameObject;
 
                     if (!gameObject || !gameObject.GetComponentInParent<ModularAvatarMenuInstaller>())
                     {
@@ -114,7 +114,7 @@ namespace jp.lilxyzw.lilemo
             var Optimizing = InPhase(BuildPhase.Optimizing);
             Optimizing.Run("Optimize Emocknetwork", ctx =>
             {
-                if (ctx.AvatarRootObject.GetComponentInChildren<EmockAnimator>() is not EmockAnimator emockAnimator) return;
+                if (ctx.AvatarRootObject.GetComponentInChildren<EmockAnimator>().Is(out not EmockAnimator emockAnimator)) return;
                 foreach (var clip in emockAnimator.clips) EmockClipConverter.Optimize(clip, clip == emockAnimator.clips[0]);
                 emockAnimator.clips[0] = EmockClipConverter.GetDefaultClip(emockAnimator.clips);
 

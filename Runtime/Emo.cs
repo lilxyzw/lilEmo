@@ -18,13 +18,13 @@ namespace jp.lilxyzw.lilemo.runtime
 #if UNITY_EDITOR && LIL_VRCSDK3
         private void Start()
         {
-            if (shapes == null && UnityEditor.Selection.activeGameObject && UnityEditor.Selection.activeGameObject.GetComponentInParent<VRC.SDKBase.VRC_AvatarDescriptor>() is VRC.SDKBase.VRC_AvatarDescriptor descriptor && descriptor.VisemeSkinnedMesh is SkinnedMeshRenderer renderer)
+            if (shapes == null && UnityEditor.Selection.activeGameObject && UnityEditor.Selection.activeGameObject.GetComponentInParent<VRC.SDKBase.VRC_AvatarDescriptor>() is VRC.SDKBase.VRC_AvatarDescriptor descriptor && descriptor && descriptor.VisemeSkinnedMesh is SkinnedMeshRenderer renderer && renderer)
                 shapes = new EmoShape[] { new() { renderer = renderer } };
         }
 #elif UNITY_EDITOR && LIL_BASISSDK
         private void Start()
         {
-            if (shapes == null && UnityEditor.Selection.activeGameObject && UnityEditor.Selection.activeGameObject.GetComponentInParent<Basis.Scripts.BasisSdk.BasisAvatar>() is Basis.Scripts.BasisSdk.BasisAvatar descriptor && descriptor.FaceVisemeMesh is SkinnedMeshRenderer renderer)
+            if (shapes == null && UnityEditor.Selection.activeGameObject && UnityEditor.Selection.activeGameObject.GetComponentInParent<Basis.Scripts.BasisSdk.BasisAvatar>() is Basis.Scripts.BasisSdk.BasisAvatar descriptor && descriptor && descriptor.FaceVisemeMesh is SkinnedMeshRenderer renderer && renderer)
                 shapes = new EmoShape[] { new() { renderer = renderer } };
         }
 #endif

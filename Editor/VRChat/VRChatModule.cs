@@ -14,14 +14,21 @@ namespace jp.lilxyzw.lilemo
 
         public static float GetFaceSize(GameObject root)
         {
-            if (GetDescriptor(root) is VRCAvatarDescriptor descriptor && descriptor.customEyeLookSettings.eyelidsSkinnedMesh is SkinnedMeshRenderer renderer && renderer.sharedMesh is Mesh mesh) return mesh.bounds.extents.y;
+            if (GetDescriptor(root).Is(out VRCAvatarDescriptor descriptor) &&
+                descriptor.customEyeLookSettings.eyelidsSkinnedMesh.Is(out SkinnedMeshRenderer renderer) &&
+                renderer.sharedMesh.Is(out Mesh mesh)
+            ) return mesh.bounds.extents.y;
             return 0.1f;
         }
 
         public static void Setup(GameObject root, out EditorCurveBinding? blinkBinding)
         {
             var descriptor = GetDescriptor(root);
-            if (descriptor.customEyeLookSettings.eyelidsBlendshapes[0] == -1 || !ObjHelper.TryGetRendererAndMeshWithBlendshape(descriptor.customEyeLookSettings.eyelidsSkinnedMesh, out var renderer, out var mesh) || descriptor.customEyeLookSettings.eyelidsBlendshapes[0] > mesh.blendShapeCount)
+            if (descriptor.customEyeLookSettings.eyelidsBlendshapes == null ||
+                descriptor.customEyeLookSettings.eyelidsBlendshapes.Length == 0 ||
+                descriptor.customEyeLookSettings.eyelidsBlendshapes[0] == -1 ||
+                !ObjHelper.TryGetRendererAndMeshWithBlendshape(descriptor.customEyeLookSettings.eyelidsSkinnedMesh, out var renderer, out var mesh) ||
+                descriptor.customEyeLookSettings.eyelidsBlendshapes[0] > mesh.blendShapeCount)
             {
                 blinkBinding = null;
                 return;

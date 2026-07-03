@@ -59,17 +59,20 @@ namespace jp.lilxyzw.lilemo
 
         private static string GetPathInAvatar(this GameObject gameObject)
         {
+            if (!gameObject) return "";
             return gameObject.GetPathFrom(gameObject.GetAvatarRoot());
         }
 
         internal static string GetPathInAvatarFast(this GameObject gameObject)
         {
+            if (!gameObject) return "";
             if (pathInAvatars.ContainsKey(gameObject)) return pathInAvatars[gameObject];
             return pathInAvatars[gameObject] = gameObject.GetPathInAvatar();
         }
 
         internal static string GetPathInAvatarFast(this Component component)
         {
+            if (!component) return "";
             return component.gameObject.GetPathInAvatarFast();
         }
 
@@ -77,10 +80,15 @@ namespace jp.lilxyzw.lilemo
         {
             renderer = null;
             mesh = null;
-            if (obj is not SkinnedMeshRenderer s || s.sharedMesh is not Mesh m || m.blendShapeCount == 0) return false;
+            if (!obj.Is(out SkinnedMeshRenderer s) || !s.sharedMesh.Is(out Mesh m) || m.blendShapeCount == 0) return false;
             renderer = s;
             mesh = m;
             return true;
+        }
+
+        internal static bool Is<T>(this Object obj, out T o) where T : Object
+        {
+            return o = obj as T;
         }
     }
 }

@@ -19,7 +19,10 @@ namespace jp.lilxyzw.lilemo
 
         public static float GetFaceSize(GameObject root)
         {
-            if (GetDescriptor(root) is BasisAvatar descriptor && descriptor.FaceVisemeMesh is SkinnedMeshRenderer renderer && renderer.sharedMesh is Mesh mesh) return mesh.bounds.extents.y;
+            if (GetDescriptor(root).Is(out BasisAvatar descriptor) &&
+                descriptor.FaceVisemeMesh.Is(out SkinnedMeshRenderer renderer) &&
+                renderer.sharedMesh.Is(out Mesh mesh)
+            ) return mesh.bounds.extents.y;
             return 0.1f;
         }
     }
