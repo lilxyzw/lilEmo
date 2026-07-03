@@ -114,7 +114,7 @@ namespace jp.lilxyzw.lilemo
             var Optimizing = InPhase(BuildPhase.Optimizing);
             Optimizing.Run("Optimize Emocknetwork", ctx =>
             {
-                if (ctx.AvatarRootObject.GetComponentInChildren<EmockAnimator>().Is(out not EmockAnimator emockAnimator)) return;
+                if (!ctx.AvatarRootObject.GetComponentInChildren<EmockAnimator>().Is(out EmockAnimator emockAnimator)) return;
                 foreach (var clip in emockAnimator.clips) EmockClipConverter.Optimize(clip, clip == emockAnimator.clips[0]);
                 emockAnimator.clips[0] = EmockClipConverter.GetDefaultClip(emockAnimator.clips);
 
