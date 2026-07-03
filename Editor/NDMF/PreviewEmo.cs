@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace jp.lilxyzw.lilemo
 {
-    internal class PreviewAnythingReplacer : IRenderFilter
+    internal class PreviewEmo : IRenderFilter
     {
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {

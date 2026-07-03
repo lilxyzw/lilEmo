@@ -37,6 +37,11 @@ namespace jp.lilxyzw.lilemo
         public static AddCustomStatesFunction addCustomStates;
 
         /// <summary>
+        /// 独自のStateを追加する際に使用します。
+        /// </summary>
+        public static GetCustomStateConditionsFunction getCustomStateConditions;
+
+        /// <summary>
         /// AnimatorControllerにパラメーターを追加する際に使用します。ExpressionsParameterには追加されません。
         /// </summary>
         /// <param name="avatarRoot">アバターのルートにあるGameObject</param>
@@ -72,6 +77,13 @@ namespace jp.lilxyzw.lilemo
         public delegate void AddCustomStatesFunction(GameObject avatarRoot, Emo emo, AnimationClip clip, AnimatorControllerInfo info);
 
         /// <summary>
+        /// 独自のStateを追加する際に使用します。
+        /// </summary>
+        /// <param name="avatarRoot">アバターのルートにあるGameObject</param>
+        /// <param name="emo">現在処理中のEmoコンポーネント</param>
+        public delegate EmoCondition[][] GetCustomStateConditionsFunction(GameObject avatarRoot, Emo emo);
+
+        /// <summary>
         /// EditorCurveBindingに基づいてデフォルト値を登録します。SerializedPropertyとEditorCurveBindingのプロパティ名が同一でない場合は登録できません。
         /// </summary>
         /// <param name="avatarRoot">アバターのルートにあるGameObject</param>
@@ -83,11 +95,11 @@ namespace jp.lilxyzw.lilemo
         {
             var pair = (binding.path, binding.propertyName, binding.type);
             if (defaultValues.ContainsKey(pair) || !obj && !(obj = AnimationUtility.GetAnimatedObject(avatarRoot, binding))) return;
-            if (binding.type == typeof(Transform) && obj is Transform && binding.propertyName.StartsWith("localEulerAnglesRaw."))
+            if (binding.type == typeof(Transform) && obj is Transform transform && binding.propertyName.StartsWith("localEulerAnglesRaw."))
             {
-                if (binding.propertyName == "localEulerAnglesRaw.x") defaultValues[pair] = (binding, value);
-                if (binding.propertyName == "localEulerAnglesRaw.y") defaultValues[pair] = (binding, value);
-                if (binding.propertyName == "localEulerAnglesRaw.z") defaultValues[pair] = (binding, value);
+                if (binding.propertyName == "localEulerAnglesRaw.x") defaultValues[pair] = (binding, transform.localEulerAngles.x);
+                if (binding.propertyName == "localEulerAnglesRaw.y") defaultValues[pair] = (binding, transform.localEulerAngles.y);
+                if (binding.propertyName == "localEulerAnglesRaw.z") defaultValues[pair] = (binding, transform.localEulerAngles.z);
                 return;
             }
             else if (binding.type == typeof(SkinnedMeshRenderer) && binding.propertyName.StartsWith("blendShape.") && ObjHelper.TryGetRendererAndMeshWithBlendshape(obj, out var renderer, out var mesh))
@@ -99,7 +111,16 @@ namespace jp.lilxyzw.lilemo
             {
                 using var so = new SerializedObject(obj);
                 using var prop = so.FindProperty(binding.propertyName);
-                if (prop != null) defaultValues[pair] = (binding, prop.floatValue);
+                if (prop != null)
+                {
+                    switch (prop.propertyType)
+                    {
+                        case SerializedPropertyType.Float: defaultValues[pair] = (binding, prop.floatValue); break;
+                        case SerializedPropertyType.Integer: defaultValues[pair] = (binding, prop.intValue); break;
+                        case SerializedPropertyType.Boolean:  defaultValues[pair] = (binding, prop.boolValue ? 1 : 0); break;
+                        default: break;
+                    }
+                }
             }
         }
 
@@ -128,7 +149,9 @@ namespace jp.lilxyzw.lilemo
                 var invertedCondition = AnimationExtension.MakeInvertedCondition(condition);
                 state.AddExitTransition().conditions = new[] { invertedCondition };
             }
+            #if LIL_VRCSDK3A
             VRChatModule.SetTracking(state, emo.disableBlink, emo.disableLipSync, emo.disableEyeTracking, parameterNameDisableBlink);
+            #endif
             info.customStateIndex++;
         }
 

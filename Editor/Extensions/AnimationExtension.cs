@@ -47,8 +47,10 @@ namespace jp.lilxyzw.lilemo
                 foreach (var condition in exitConditions)
                     state.AddTransition(rootMachine, dulation, condition);
 
+            #if LIL_VRCSDK3A
             if (emo) VRChatModule.SetTracking(state, emo.disableBlink, emo.disableLipSync, emo.disableEyeTracking, EmoProcessor.parameterNameDisableBlink);
             else VRChatModule.SetTracking(state, false, false, false, EmoProcessor.parameterNameDisableBlink);
+            #endif
 
             return state;
         }

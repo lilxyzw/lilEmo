@@ -25,15 +25,19 @@ namespace jp.lilxyzw.lilemo
 
         internal static Transform GetAvatarRoot(this GameObject gameObject)
         {
-            //#if LIL_VRCSDK3A
-            if (gameObject.GetComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>()) return gameObject.transform;
-            var descriptor = gameObject.GetComponentInParentInRoot<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>(null);
-            if (descriptor) return descriptor.transform;
-            //#else
-            //    if(gameObject.GetComponent<Animator>()) return gameObject.transform;
-            //    var animator = gameObject.GetComponentInParentInRoot<Animator>(null);
-            //    if(animator) return animator.transform;
-            //#endif
+            #if LIL_VRCSDK3A
+                if (gameObject.GetComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>()) return gameObject.transform;
+                var descriptor = gameObject.GetComponentInParentInRoot<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>(null);
+                if (descriptor) return descriptor.transform;
+            #elif LIL_BASISSDK
+                if(gameObject.GetComponent<Basis.Scripts.BasisSdk.BasisAvatar>()) return gameObject.transform;
+                var animator = gameObject.GetComponentInParentInRoot<Basis.Scripts.BasisSdk.BasisAvatar>(null);
+                if(animator) return animator.transform;
+            #else
+                if(gameObject.GetComponent<Animator>()) return gameObject.transform;
+                var animator = gameObject.GetComponentInParentInRoot<Animator>(null);
+                if(animator) return animator.transform;
+            #endif
             return null;
         }
 

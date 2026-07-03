@@ -1,4 +1,4 @@
-
+#if LIL_VRCSDK3A
 using System.Collections.Generic;
 using jp.lilxyzw.lilemo.runtime;
 using nadena.dev.ndmf;
@@ -27,3 +27,4 @@ namespace jp.lilxyzw.lilemo
         }
     }
 }
+#endif

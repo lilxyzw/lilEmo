@@ -5,7 +5,12 @@
         "jp.lilxyzw.lilemo.runtime",
         "nadena.dev.ndmf",
         "nadena.dev.ndmf.vrchat",
-        "nadena.dev.modular-avatar.core"
+        "nadena.dev.modular-avatar.core",
+        "BasisSDK",
+        "Basis Framework",
+        "jp.lilxyzw.emock",
+        "jp.lilxyzw.emock.Editor",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"
@@ -16,6 +21,22 @@
     "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "",
+            "define": "LIL_VRCSDK3A"
+        },
+        {
+            "name": "com.basis.sdk",
+            "expression": "",
+            "define": "LIL_BASISSDK"
+        },
+        {
+            "name": "jp.lilxyzw.emock",
+            "expression": "",
+            "define": "LIL_EMOCK"
+        }
+    ],
     "noEngineReferences": false
 }

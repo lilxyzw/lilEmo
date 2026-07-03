@@ -1,13 +1,22 @@
+using System.Collections.Generic;
+using System.Linq;
 using jp.lilxyzw.lilemo;
 using jp.lilxyzw.lilemo.runtime;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.ndmf;
 using UnityEngine;
+using UnityEditor;
+
+#if LIL_EMOCK
+using jp.lilxyzw.emock;
+using jp.lilxyzw.emock.Editor;
+#endif
 
 [assembly: ExportsPlugin(typeof(EmoPlugin))]
 
 namespace jp.lilxyzw.lilemo
 {
+    [RunsOnAllPlatforms]
     internal class EmoPlugin : Plugin<EmoPlugin>
     {
         public override string QualifiedName => "jp.lilxyzw.lilemo";
@@ -16,6 +25,7 @@ namespace jp.lilxyzw.lilemo
         protected override void Configure()
         {
             var Generating = InPhase(BuildPhase.Generating).BeforePlugin("nadena.dev.modular-avatar").AfterPlugin("net.rs64.tex-trans-tool");
+            #if LIL_VRCSDK3A
             Generating.Run("Generate Animations and MA Components", ctx =>
             {
                 if (!ctx.AvatarRootObject.GetComponentInChildren<Emo>(true)) return;
@@ -90,12 +100,29 @@ namespace jp.lilxyzw.lilemo
                 // ダンスワールド対応
                 controller.layers[0].stateMachine.AddStateMachineBehaviour<ModularAvatarMMDLayerControl>().DisableInMMDMode = true;
                 controller.layers[1].stateMachine.AddStateMachineBehaviour<ModularAvatarMMDLayerControl>().DisableInMMDMode = true;
-            }).PreviewingWith(new PreviewAnythingReplacer());
+            }).PreviewingWith(new PreviewEmo());
+            #elif LIL_EMOCK
+            Generating.Run("Generate Animations and MA Components", ctx => EmoProcessor.ProcessEmock(ctx.AvatarRootObject)).PreviewingWith(new PreviewEmo());
+            #endif
 
             Generating.Run("Remove Components", ctx =>
             {
                 foreach (var e in ctx.AvatarRootObject.GetComponentsInChildren<EmoEditorOnly>(true)) Object.DestroyImmediate(e);
             });
+
+            #if LIL_EMOCK
+            var Optimizing = InPhase(BuildPhase.Optimizing);
+            Optimizing.Run("Optimize Emocknetwork", ctx =>
+            {
+                if (ctx.AvatarRootObject.GetComponentInChildren<EmockAnimator>() is not EmockAnimator emockAnimator) return;
+                foreach (var clip in emockAnimator.clips) EmockClipConverter.Optimize(clip, clip == emockAnimator.clips[0]);
+                emockAnimator.clips[0] = EmockClipConverter.GetDefaultClip(emockAnimator.clips);
+
+                var controller = ctx.AvatarRootObject.GetComponentInChildren<EmockController>(true);
+                var menuItems = ctx.AvatarRootObject.GetComponentsInChildren<EmockMenuItem>(true);
+                foreach (var menuItem in menuItems) menuItem.controller = controller;
+            });
+            #endif
         }
     }
 }

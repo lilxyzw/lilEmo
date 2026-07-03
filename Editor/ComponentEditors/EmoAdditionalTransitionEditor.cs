@@ -42,10 +42,7 @@ namespace jp.lilxyzw.lilemo
         {
             // 処理用
             EmoProcessor.addParameter += (avatarRoot, emos, parameters) => parameters.UnionWith(emos.SelectMany(e => e.GetComponents<EmoAdditionalTransition>()).SelectMany(c => c.customConditions).Select(c => (c.type, c.parameter)));
-            EmoProcessor.addCustomStates += (avatarRoot, emo, clip, info) =>
-            {
-                foreach (var t in emo.GetComponents<EmoAdditionalTransition>()) EmoProcessor.AddCustomConditionState(emo, clip, t.customConditions, info);
-            };
+            EmoProcessor.getCustomStateConditions += (avatarRoot, emo) => emo.GetComponents<EmoAdditionalTransition>().Select(t => t.customConditions).ToArray();
         }
     }
 }

@@ -1,3 +1,4 @@
+#if LIL_VRCSDK3A
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -47,3 +48,4 @@ namespace jp.lilxyzw.lilemo
         }
     }
 }
+#endif

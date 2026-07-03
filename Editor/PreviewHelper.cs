@@ -87,8 +87,13 @@ namespace jp.lilxyzw.lilemo
             if (settings) captureSize = settings.iconSize;
             var currentRT = RenderTexture.active;
 
+            #if LIL_VRCSDK3A
             var viewHeight = VRChatModule.GetViewHeight(root);
             var faceSize = VRChatModule.GetFaceSize(root);
+            #elif LIL_BASISSDK
+            var viewHeight = BasisModule.GetViewHeight(root);
+            var faceSize = BasisModule.GetFaceSize(root);
+            #endif
 
             var cameraObj = new GameObject();
             var camera = cameraObj.AddComponent<Camera>();

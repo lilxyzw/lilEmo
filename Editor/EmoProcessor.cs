@@ -56,83 +56,8 @@ namespace jp.lilxyzw.lilemo
             var exitRight = new[] { MakeInvertedCondition(enterRight), enterMenu };
             var exitLeft = new[] { MakeInvertedCondition(enterLeft), enterMenu, enterRight };
 
-            // アニメーションされるBlendShapeと初期値を取得
-            var defaultValues = new Dictionary<(string path, string propertyName, Type type), (EditorCurveBinding binding, float value)>();
-            var clipBindings = new Dictionary<AnimationClip, EditorCurveBinding[]>();
-            foreach (var emo in emos)
-            {
-                GetDefaults(avatarRoot, emo, defaultValues, clipBindings);
-                getDefaults.Invoke(avatarRoot, emo, defaultValues);
-            }
-
-            // デフォルト表情
-            var clipDefault = MakeClip("Neutral", defaultValues.Select(kv => kv.Value.binding).ToArray(), defaultValues.Select(kv => MakeZeroFrameCurve(kv.Value.value)).ToArray());
-
-            // アニメーション生成、メニュー登録
-            addMenu(null, 1); // Idleのメニューを最初に
-            var gesturesLeft = new (AnimationClip clip, Emo emo)[8];
-            var gesturesRight = new (AnimationClip clip, Emo emo)[8];
-            var gestureDuplicates = new HashSet<Emo>();
-            var clips = new Dictionary<Emo, AnimationClip>();
-            int menuIndex = 2;
-            foreach (var emo in emos)
-            {
-                var bindings = new List<EditorCurveBinding>();
-                var curves = new List<AnimationCurve>();
-                if (emo.clip)
-                {
-                    bindings.AddRange(clipBindings[emo.clip]);
-                    curves.AddRange(clipBindings[emo.clip].Select(b => AnimationUtility.GetEditorCurve(emo.clip, b)));
-                }
-
-                foreach (var kv in defaultValues)
-                {
-                    if (bindings.Any(b => b.path == kv.Key.path && b.propertyName == kv.Key.propertyName)) continue;
-                    bindings.Add(kv.Value.binding);
-
-                    if (kv.Key.type == typeof(SkinnedMeshRenderer) && emo.shapes.FirstOrDefault(s => s.renderer.GetPathInAvatarFast() == kv.Key.path)?.keys.FirstOrDefault(k => $"blendShape.{k.blendshape}" == kv.Key.propertyName) is EmoKey key) curves.Add(MakeZeroFrameCurve(key.value));
-                    else
-                    {
-                        bool isAdded = false;
-                        setCurves.Invoke(avatarRoot, emo, kv, curves, ref isAdded);
-                        if (!isAdded) curves.Add(MakeZeroFrameCurve(kv.Value.value));
-                    }
-                }
-
-                var clip = MakeClip(emo.gameObject.name, bindings.ToArray(), curves.ToArray());
-                if (emo.clip) AnimationUtility.SetAnimationClipSettings(clip, AnimationUtility.GetAnimationClipSettings(emo.clip));
-
-                var gestureIndex = (int)emo.gesture;
-                if (gestureIndex > 0)
-                {
-                    if (emo.hand == EmoHand.Any || emo.hand == EmoHand.Left)
-                    {
-                        if (gesturesLeft[gestureIndex].emo)
-                        {
-                            gestureDuplicates.Add(gesturesLeft[gestureIndex].emo);
-                            gestureDuplicates.Add(emo);
-                        }
-                        gesturesLeft[gestureIndex] = (clip, emo);
-                    }
-                    if (emo.hand == EmoHand.Any || emo.hand == EmoHand.Right)
-                    {
-                        if (gesturesRight[gestureIndex].emo)
-                        {
-                            gestureDuplicates.Add(gesturesRight[gestureIndex].emo);
-                            gestureDuplicates.Add(emo);
-                        }
-                        gesturesRight[gestureIndex] = (clip, emo);
-                    }
-                }
-
-                menuStateMachine.AddClipToStateMachine(emo, clip, parameterName, menuIndex, emos.Length + 1, dulation, rootStateMachine, exitMenu);
-                clips[emo] = clip;
-                addMenu(emo, menuIndex);
-
-                menuIndex++;
-            }
-
-            if (gestureDuplicates.Any()) Warn("There are overlapping gesture settings.", gestureDuplicates);
+            // アニメーション変換
+            ConvertToClips(emos, avatarRoot, addMenu, (e,c,i) => menuStateMachine.AddClipToStateMachine(e, c, parameterName, i, emos.Length + 1, dulation, rootStateMachine, exitMenu), out var clipDefault, out var clips, out var gesturesLeft, out var gesturesRight);
 
             // Gestureによる操作
             for (int i = 1; i < 8; i++)
@@ -181,6 +106,8 @@ namespace jp.lilxyzw.lilemo
                 var clip = clips[emo];
                 AddCustomConditionState(emo, clip, emo.customConditions, info);
                 addCustomStates(avatarRoot, emo, clip, info);
+                foreach (var conditions in getCustomStateConditions(avatarRoot, emo))
+                    AddCustomConditionState(emo, clip, conditions, info);
             }
 
             // 次にGesture
@@ -194,7 +121,9 @@ namespace jp.lilxyzw.lilemo
             idleState.AddExitTransition().conditions = new[] { enterMenu };
             idleState.AddExitTransition().conditions = new[] { enterRight };
             idleState.AddExitTransition().conditions = new[] { enterLeft };
+            #if LIL_VRCSDK3
             VRChatModule.SetTracking(idleState, false, false, false, parameterNameDisableBlink);
+            #endif
             menuStateMachine.AddClipToStateMachine(null, clipDefault, parameterName, 1, emos.Length + 1, dulation, rootStateMachine, exitMenu);
 
             rootStateMachine.AddStateMachineExitTransitionOR(menuStateMachine, exitMenu);
@@ -250,6 +179,95 @@ namespace jp.lilxyzw.lilemo
             });
 
             return controller;
+        }
+
+        private static void ConvertToClips(
+            Emo[] emos,
+            GameObject avatarRoot,
+            Action<Emo, int> addMenu, Action<Emo, AnimationClip, int> otherAction,
+            out AnimationClip clipDefault,
+            out Dictionary<Emo, AnimationClip> clips,
+            out (AnimationClip clip, Emo emo)[] gesturesLeft,
+            out (AnimationClip clip, Emo emo)[] gesturesRight
+        )
+        {
+            // アニメーションされるBlendShapeと初期値を取得
+            var defaultValues = new Dictionary<(string path, string propertyName, Type type), (EditorCurveBinding binding, float value)>();
+            var clipBindings = new Dictionary<AnimationClip, EditorCurveBinding[]>();
+            foreach (var emo in emos)
+            {
+                GetDefaults(avatarRoot, emo, defaultValues, clipBindings);
+                getDefaults.Invoke(avatarRoot, emo, defaultValues);
+            }
+
+            // デフォルト表情
+            clipDefault = MakeClip("Neutral", defaultValues.Select(kv => kv.Value.binding).ToArray(), defaultValues.Select(kv => MakeZeroFrameCurve(kv.Value.value)).ToArray());
+
+            // アニメーション生成、メニュー登録
+            addMenu?.Invoke(null, 1); // Idleのメニューを最初に
+            gesturesLeft = new (AnimationClip clip, Emo emo)[8];
+            gesturesRight = new (AnimationClip clip, Emo emo)[8];
+            var gestureDuplicates = new HashSet<Emo>();
+            clips = new Dictionary<Emo, AnimationClip>();
+            int menuIndex = 2;
+            foreach (var emo in emos)
+            {
+                var bindings = new List<EditorCurveBinding>();
+                var curves = new List<AnimationCurve>();
+                if (emo.clip)
+                {
+                    bindings.AddRange(clipBindings[emo.clip]);
+                    curves.AddRange(clipBindings[emo.clip].Select(b => AnimationUtility.GetEditorCurve(emo.clip, b)));
+                }
+
+                foreach (var kv in defaultValues)
+                {
+                    if (bindings.Any(b => b.path == kv.Key.path && b.propertyName == kv.Key.propertyName)) continue;
+                    bindings.Add(kv.Value.binding);
+
+                    if (kv.Key.type == typeof(SkinnedMeshRenderer) && emo.shapes.FirstOrDefault(s => s.renderer.GetPathInAvatarFast() == kv.Key.path)?.keys.FirstOrDefault(k => $"blendShape.{k.blendshape}" == kv.Key.propertyName) is EmoKey key) curves.Add(MakeZeroFrameCurve(key.value));
+                    else
+                    {
+                        bool isAdded = false;
+                        setCurves.Invoke(avatarRoot, emo, kv, curves, ref isAdded);
+                        if (!isAdded) curves.Add(MakeZeroFrameCurve(kv.Value.value));
+                    }
+                }
+
+                var clip = MakeClip(emo.gameObject.name, bindings.ToArray(), curves.ToArray());
+                if (emo.clip) AnimationUtility.SetAnimationClipSettings(clip, AnimationUtility.GetAnimationClipSettings(emo.clip));
+
+                var gestureIndex = (int)emo.gesture;
+                if (gestureIndex > 0)
+                {
+                    if (emo.hand == EmoHand.Any || emo.hand == EmoHand.Left)
+                    {
+                        if (gesturesLeft[gestureIndex].emo)
+                        {
+                            gestureDuplicates.Add(gesturesLeft[gestureIndex].emo);
+                            gestureDuplicates.Add(emo);
+                        }
+                        gesturesLeft[gestureIndex] = (clip, emo);
+                    }
+                    if (emo.hand == EmoHand.Any || emo.hand == EmoHand.Right)
+                    {
+                        if (gesturesRight[gestureIndex].emo)
+                        {
+                            gestureDuplicates.Add(gesturesRight[gestureIndex].emo);
+                            gestureDuplicates.Add(emo);
+                        }
+                        gesturesRight[gestureIndex] = (clip, emo);
+                    }
+                }
+
+                otherAction?.Invoke(emo, clip, menuIndex);
+                clips[emo] = clip;
+                addMenu?.Invoke(emo, menuIndex);
+
+                menuIndex++;
+            }
+
+            if (gestureDuplicates.Any()) Warn("There are overlapping gesture settings.", gestureDuplicates);
         }
 
         private static void GetDefaults(GameObject avatarRoot, Emo emo, Dictionary<(string path, string propertyName, Type type), (EditorCurveBinding binding, float value)> defaultValues, Dictionary<AnimationClip, EditorCurveBinding[]> clipBindings)
